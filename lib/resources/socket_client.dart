@@ -9,7 +9,7 @@ class SocketClient {
   SocketClient._internal() {
     log('inside socketClients _internal method');
 
-    socket = IO.io('http://192.168.150.253:3000', <String, dynamic>{
+    socket = IO.io('http://192.168.173.253:3000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });

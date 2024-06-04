@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:tictactoe_flutter_multiplayer_game/responsive/responsive.dart';
 import 'package:tictactoe_flutter_multiplayer_game/screens/otp_check_screen.dart';
+import 'package:tictactoe_flutter_multiplayer_game/utils/utils.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_button.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text_field.dart';
@@ -20,8 +25,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final TextEditingController _phoneNoController = TextEditingController();
 
-  void sendOTP(BuildContext context) {
-    Navigator.pushNamed(context, OTPCheck.routeName);
+  Future<void> sendOtp(String phoneNumber) async {
+    final url = Uri.parse('http://192.168.173.253:3000/auth/login');
+
+    final response = await http.post(
+      url,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'phoneNumber': phoneNumber,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      log(response.body);
+      log('OTP sent successfully');
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, "OTP sent!");
+    } else {
+      // ignore: use_build_context_synchronously
+      showSnackBar(context, "Invalid Phone Number!");
+      throw Exception('Failed to send OTP');
+    }
+
+    // ignore: use_build_context_synchronously
+    Navigator.pushNamed(context, OTPCheck.routeName,
+        arguments: {'phoneNumber': _phoneNoController.text});
   }
 
   @override
@@ -95,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: size.height * 0.02),
             CustomButton(
-              onTap: () => sendOTP(context),
+              onTap: () => sendOtp(_phoneNoController.text),
               text: 'Send OTP',
             ),
           ],

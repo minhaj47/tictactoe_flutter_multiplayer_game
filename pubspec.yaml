@@ -39,6 +39,7 @@ dependencies:
   provider: ^6.1.2
   sms_autofill: ^2.3.1
   snippet_coder_utils: ^1.0.15
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:

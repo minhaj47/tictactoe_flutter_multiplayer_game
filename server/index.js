@@ -2,18 +2,24 @@
 const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 var server = http.createServer(app);
-const Room = require("./models/room");
 var io = require("socket.io")(server);
+
+
+const Room = require("./models/room");
+const authHandler= require("./routes/auth");
 
 // middle ware
 app.use(express.json());
 
-// db
-const DB = "mongodb+srv://minhaj47:alupotol@cluster0.pzoxn8j.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+// router 
+app.use('/auth', authHandler);
+
+// socket io 
 
 io.on("connection", (socket) => {
 
@@ -125,12 +131,14 @@ io.on("connection", (socket) => {
 
 });
 
-mongoose.connect(DB).then(() => {
+
+// db
+
+mongoose.connect(process.env.MONGO_URI).then(() => {     // promise in js = future in dart 
     console.log('connected to mongodb');
 }).catch((e) => {
     console.log(e);
 });
-// promise in js = future in dart 
 
 
 server.listen(port, '0.0.0.0', () => {
