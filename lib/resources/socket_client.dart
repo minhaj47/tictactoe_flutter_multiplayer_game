@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:tictactoe_flutter_multiplayer_game/constant.dart';
 
 class SocketClient {
   IO.Socket? socket;
@@ -9,7 +10,7 @@ class SocketClient {
   SocketClient._internal() {
     log('inside socketClients _internal method');
 
-    socket = IO.io('http://192.168.173.253:3000', <String, dynamic>{
+    socket = IO.io(Constant.serverURL, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });

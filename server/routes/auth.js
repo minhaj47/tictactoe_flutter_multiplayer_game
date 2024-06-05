@@ -31,12 +31,10 @@ router.post('/login', async (req, res) => {
             method: 'POST',
             url: 'https://control.msg91.com/api/v5/otp',
             params: {
-              template_id: process.env.MSG91_TEMPLATE_ID,
-              mobile: phoneNumber,
-              authkey: process.env.MSG91_AUTH_KEY
+                "appId": "APP_118838",
+                "password": "cab1c32cdbe7b1489ec6048e33296a43",
+                "mobile": "8801629864228"
             },
-            headers: {'Content-Type': 'application/JSON'},
-            data: '{\n  "phoneNumber": "+8801909484884"\n}'
           };
 
         axios.request(options).then(function (response) {

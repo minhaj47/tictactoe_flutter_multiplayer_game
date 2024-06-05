@@ -11,6 +11,7 @@ import 'package:tictactoe_flutter_multiplayer_game/utils/utils.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_button.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text_field.dart';
+import 'package:tictactoe_flutter_multiplayer_game/constant.dart';
 
 class OTPCheck extends StatefulWidget {
   static String routeName = 'otp-check';
@@ -27,10 +28,11 @@ class _OTPCheckState extends State<OTPCheck> {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-    final phoneNumber = args['phoneNumber'];
-    log(phoneNumber);
+    final referenceNo = args['referenceNo'];
+    log(referenceNo);
 
-    final url = Uri.parse('http://192.168.173.253:3000/auth/verify-otp');
+    final url = Uri.parse('${Constant.subscriptionApiURL}/otp/verify');
+    log(Constant.appID);
 
     final response = await http.post(
       url,
@@ -38,26 +40,44 @@ class _OTPCheckState extends State<OTPCheck> {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'phoneNumber': phoneNumber,
-        'otp': otp,
+        "appId": Constant.appID,
+        "password": Constant.password,
+        "referenceNo": referenceNo,
+        "otp": otp,
       }),
     );
 
+    // {
+    //         statusCode: response.data.statusCode,
+    //         version: response.data.version,
+    //         subscriptionStatus:response.data.subscriptionStatus,
+    //         statusDetail:response.data.statusDetail,
+    //         subscriberId:response.status.subscriberId
+    //     }
+
+    final data = jsonDecode(response.body);
+    String message = '';
+
     if (response.statusCode == 200) {
-      // ignore: use_build_context_synchronously
-      showSnackBar(context, response.body);
-      // ignore: use_build_context_synchronously
-      Navigator.pushNamed(context, MainMenuScreen.routeName);
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
-      log('OTP verified successfully');
+      if (data['statusCode'] == 'S1000') {
+        message = 'OTP successfully Verified!';
+
+        // ignore: use_build_context_synchronously
+        Navigator.pushNamed(context, MainMenuScreen.routeName);
+      } else if (data['statusCode'] == 'S1') {
+        // ignore: use_build_context_synchronously
+        message = "${data['statusCode']} ${data['statusDetail']}";
+      }
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
       // ignore: use_build_context_synchronously
-      showSnackBar(context, response.body);
-      throw Exception('Failed to verify OTP');
+      message = "${response.statusCode} ${response.body}";
+      throw Exception(message);
     }
+    log(message);
+    // ignore: use_build_context_synchronously
+    showSnackBar(context, message);
   }
 
   @override

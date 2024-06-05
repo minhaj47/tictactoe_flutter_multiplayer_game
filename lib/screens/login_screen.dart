@@ -9,6 +9,7 @@ import 'package:tictactoe_flutter_multiplayer_game/utils/utils.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_button.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text.dart';
 import 'package:tictactoe_flutter_multiplayer_game/widgets/custom_text_field.dart';
+import 'package:tictactoe_flutter_multiplayer_game/constant.dart';
 
 class LoginScreen extends StatefulWidget {
   static String routeName = 'login-screen';
@@ -20,13 +21,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String phoneNo = '';
   bool isAPICallProcess = false;
 
   final TextEditingController _phoneNoController = TextEditingController();
 
-  Future<void> sendOtp(String phoneNumber) async {
-    final url = Uri.parse('http://192.168.173.253:3000/auth/login');
+  void sendOtp(String phoneNumber) async {
+    log('inside sendOTP');
+    final url = Uri.parse('${Constant.subscriptionApiURL}/otp/request');
 
     final response = await http.post(
       url,
@@ -34,24 +35,43 @@ class _LoginScreenState extends State<LoginScreen> {
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'phoneNumber': phoneNumber,
+        "appId": Constant.appID,
+        "password": Constant.password,
+        "mobile": phoneNumber
       }),
     );
 
+    // {
+    //          statusCode: response.data.statusCode,
+    //         statusDetail: response.data.statusDetail,
+    //         referenceNo: response.data.referenceNo,
+    //         version: response.data.version,
+    // }
+
+    final data = jsonDecode(response.body);
+    String message = '';
+
     if (response.statusCode == 200) {
-      log(response.body);
-      log('OTP sent successfully');
-      // ignore: use_build_context_synchronously
-      showSnackBar(context, "OTP sent!");
+      if (data['statusCode'] == 'S1000') {
+        message = 'OTP sent successfully';
+        Navigator.pushNamed(
+          // ignore: use_build_context_synchronously
+          context,
+          OTPCheck.routeName,
+          arguments: {'referenceNo': data['referenceNo']},
+        );
+      } else {
+        // ignore: use_build_context_synchronously
+        message = "${data['statusCode']} ${data['statusDetail']}";
+      }
     } else {
       // ignore: use_build_context_synchronously
-      showSnackBar(context, "Invalid Phone Number!");
-      throw Exception('Failed to send OTP');
+      message = response.statusCode.toString() + response.body.toString();
+      throw Exception(message);
     }
-
+    log(message);
     // ignore: use_build_context_synchronously
-    Navigator.pushNamed(context, OTPCheck.routeName,
-        arguments: {'phoneNumber': _phoneNoController.text});
+    showSnackBar(context, message);
   }
 
   @override
